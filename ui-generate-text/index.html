@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Text</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- spin.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+
+    <!-- Custom styles -->
+    <style>
+        #loading-spinner {
+            position: relative;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 10px;
+        }
+    </style>
+
+</head>
+
+<body class="bg-gray-100">
+
+    <div class="min-h-screen flex flex-col justify-center items-center">
+        <div class="max-w-lg w-full px-6 py-12 bg-white rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-6">Generate Text</h2>
+
+            <form id="my-form" class="max-w-lg mx-auto mt-4">
+                <div class="flex flex-col mb-4">
+                    <label for="text-input" class="mb-2 font-semibold">Nhập text:</label>
+                    <input type="text" name="text-input" id="text-input"
+                        class="border border-gray-400 p-2 rounded-md focus:outline-none focus:border-blue-500" required>
+                </div>
+                <div class="flex justify-between">
+                    <button type="submit"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline-blue">Submit</button>
+                    <button type="button"
+                        class="bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline-gray"
+                        id="reset-btn">Hủy</button>
+                </div>
+            </form>
+
+            <div id="result" class="hidden max-w-lg mx-auto mt-4 p-4 bg-green-100 border-l-4 border-green-500"></div>
+            <div id="error" class="hidden max-w-lg mx-auto mt-4 p-4 bg-red-100 border-l-4 border-red-500"></div>
+            <div id="loading-spinner" class="hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('my-form');
+        const resultDiv = document.getElementById('result');
+        const resetBtn = document.getElementById('reset-btn');
+        const errorDiv = document.getElementById('error');
+        const spinnerDiv = document.getElementById('loading-spinner');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const text = document.getElementById('text-input').value;
+
+            // Showing the loading spinner
+            const spinner = new Spinner({
+                lines: 12,
+                length: 8,
+                width: 4,
+                radius: 10,
+                color: '#000000',
+                speed: 1,
+                zIndex: 2e9,
+                className: 'spinner'
+            }).spin(spinnerDiv);
+            resultDiv.classList.add('hidden');
+            errorDiv.classList.add('hidden');
+            spinnerDiv.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`https://generate-text-api.onrender.com/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: text
+                    })
+                });
+
+                const data = await response.json();
+
+                resultDiv.innerText = data.text;
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                errorDiv.innerText = error.message;
+                errorDiv.classList.remove('hidden');
+            }
+
+            // Hiding the loading spinner
+            spinner.stop();
+            spinnerDiv.classList.add('hidden');
+        });
+
+        resetBtn.addEventListener('click', () => {
+            document.getElementById('text-input').value = '';
+            resultDiv.innerText = '';
+            resultDiv.classList.add('hidden');
+            errorDiv.innerText = '';
+            errorDiv.classList.add('hidden');
+        });
+    </script>
+
+</body>
+
+</html>
